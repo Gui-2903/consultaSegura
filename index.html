@@ -2,10 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>VirusTotal Scanner</title>
+  <title>Consulta Segura</title>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       background: #0f172a;
       color: #e2e8f0;
       display: flex;
@@ -19,10 +20,6 @@
       background: #1e293b;
       padding: 20px;
       border-radius: 10px;
-    }
-
-    h1 {
-      text-align: center;
     }
 
     input, button {
@@ -56,36 +53,43 @@
     }
 
     .loading {
+      color: yellow;
       text-align: center;
-      color: #facc15;
+    }
+
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>🔍 VirusTotal Scanner</h1>
+  <h2>🔍 Consulta Segura</h2>
 
   <!-- URL -->
-  <input type="text" id="urlInput" placeholder="Cole uma URL aqui">
+  <input type="text" id="urlInput" placeholder="Cole uma URL">
   <button onclick="scanURL()">Analisar URL</button>
 
-  <!-- Arquivo -->
+  <!-- FILE -->
   <input type="file" id="fileInput">
   <button onclick="scanFile()">Analisar Arquivo</button>
 
-  <!-- Resultado -->
+  <!-- RESULT -->
   <div id="result" class="result"></div>
 </div>
 
 <script>
-  // 🔑 COLOQUE SUA API KEY AQUI
-  const API_KEY = "c3342ba0126f2bb04e5e0c23eb8905406a3b87d6775708e50856ea4bb23a4b10";
+  const BASE_URL = "https://vt-backend-consultasegura.onrender.com/";
 
   const resultDiv = document.getElementById("result");
 
-  function showLoading() {
-    resultDiv.innerHTML = "<p class='loading'>⏳ Carregando...</p>";
+  function loading() {
+    resultDiv.innerHTML = "<p class='loading'>⏳ Analisando...</p>";
+  }
+
+  function showError(msg) {
+    resultDiv.innerHTML = `<p class="error">❌ ${msg}</p>`;
   }
 
   function showResult(data, link) {
@@ -93,132 +97,99 @@
 
     resultDiv.innerHTML = `
       <h3>Resultado</h3>
-      <p><strong>Status:</strong> ${data.attributes.status || "Concluído"}</p>
       <p><strong>Malicioso:</strong> ${stats.malicious}</p>
       <p><strong>Suspeito:</strong> ${stats.suspicious}</p>
       <p><strong>Seguro:</strong> ${stats.harmless}</p>
-      <p><a href="${link}" target="_blank">🔗 Ver relatório completo</a></p>
+      <a href="${link}" target="_blank">🔗 Ver relatório completo</a>
     `;
   }
 
-  // ===============================
-  // 🔗 ANALISAR URL
-  // ===============================
+  // 🔗 URL
   async function scanURL() {
     const url = document.getElementById("urlInput").value;
 
-    if (!url) return alert("Digite uma URL!");
+    if (!url) return alert("Digite uma URL");
 
-    showLoading();
+    loading();
 
     try {
-      // Enviar URL
-      const response = await fetch("https://www.virustotal.com/api/v3/urls", {
+      const response = await fetch(`${BASE_URL}/scan-url`, {
         method: "POST",
         headers: {
-          "x-apikey": API_KEY,
           "Content-Type": "application/x-www-form-urlencoded"
         },
         body: `url=${encodeURIComponent(url)}`
       });
 
       const data = await response.json();
+
       const analysisId = data.data.id;
 
-      // Buscar resultado
-      const resultResponse = await fetch(
-        `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
-        {
-          headers: { "x-apikey": API_KEY }
-        }
-      );
+      await getResult(analysisId, "url");
 
-      const resultData = await resultResponse.json();
-
-      showResult(
-        resultData.data,
-        `https://www.virustotal.com/gui/url/${analysisId}`
-      );
-
-    } catch (error) {
-      resultDiv.innerHTML = `
-        <p style="color:red;">Erro: ${error.message}</p>
-        <p>⚠️ Possível erro de CORS. Veja instruções no código.</p>
-      `;
+    } catch (err) {
+      showError("Erro ao analisar URL");
     }
   }
 
-  // ===============================
-  // 📁 ANALISAR ARQUIVO
-  // ===============================
+  // 📁 FILE
   async function scanFile() {
     const file = document.getElementById("fileInput").files[0];
 
-    if (!file) return alert("Selecione um arquivo!");
+    if (!file) return alert("Selecione um arquivo");
 
-    showLoading();
+    loading();
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await fetch("https://www.virustotal.com/api/v3/files", {
+      const response = await fetch(`${BASE_URL}/scan-file`, {
         method: "POST",
-        headers: {
-          "x-apikey": API_KEY
-        },
         body: formData
       });
 
       const data = await response.json();
+
       const analysisId = data.data.id;
 
-      const resultResponse = await fetch(
-        `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
-        {
-          headers: { "x-apikey": API_KEY }
-        }
-      );
+      await getResult(analysisId, "file");
 
-      const resultData = await resultResponse.json();
-
-      showResult(
-        resultData.data,
-        `https://www.virustotal.com/gui/file/${analysisId}`
-      );
-
-    } catch (error) {
-      resultDiv.innerHTML = `
-        <p style="color:red;">Erro: ${error.message}</p>
-        <p>⚠️ Possível erro de CORS.</p>
-      `;
+    } catch (err) {
+      showError("Erro ao enviar arquivo");
     }
   }
 
-  /*
-  ==========================================
-  ⚠️ PROBLEMA DE CORS (IMPORTANTE)
-  ==========================================
+  // 🔄 BUSCAR RESULTADO (Polling)
+  async function getResult(id, type) {
+    let tries = 0;
 
-  A API do VirusTotal NÃO permite chamadas diretas do navegador.
+    while (tries < 10) {
+      try {
+        const res = await fetch(`${BASE_URL}/analysis/${id}`);
+        const data = await res.json();
 
-  SOLUÇÕES:
+        if (data.data.attributes.status === "completed") {
+          const link =
+            type === "url"
+              ? `https://www.virustotal.com/gui/url/${id}`
+              : `https://www.virustotal.com/gui/file/${id}`;
 
-  ✔️ 1. Usar extensão Chrome:
-     - "Allow CORS"
-     - "Moesif CORS"
+          showResult(data.data, link);
+          return;
+        }
 
-  ✔️ 2. Usar um proxy local (RECOMENDADO):
-     Exemplo Node.js:
-     - Criar servidor que chama a API
-     - Front chama o servidor
+        await new Promise(r => setTimeout(r, 2000));
+        tries++;
 
-  ✔️ 3. Usar ferramentas como:
-     - Vite dev server proxy
-     - Express backend
+      } catch {
+        showError("Erro ao buscar resultado");
+        return;
+      }
+    }
 
-  ⚠️ NUNCA exponha sua API Key em produção!
-  */
+    showError("Tempo excedido, tente novamente");
+  }
 </script>
 
 </body>
