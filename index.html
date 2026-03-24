@@ -124,7 +124,7 @@
       const data = await response.json();
 
       console.log(data);
-      const analysisId = data.data.id;
+      const analysisId = data.data.links;
 
       await getResult(analysisId, "url");
 
