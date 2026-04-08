@@ -1,34 +1,66 @@
-# 🔍 Consulta Segura - Análise de URL Pro
+# 🔍 Consulta Segura - Analisador de URLs Profissional
 
-O **Consulta Segura** é uma interface moderna e intuitiva integrada à API do VirusTotal para realizar varreduras de segurança em URLs. O objetivo é fornecer uma análise rápida sobre a confiabilidade de links, identificando ameaças como malwares, phishing e domínios maliciosos através de múltiplos motores de análise simultâneos.
-
----
-
-## ✨ Funcionalidades
-
-- **Análise em Tempo Real:** Integração direta com a API do VirusTotal.
-- **Visualização Moderna:** Interface limpa com cartões de estatísticas coloridos para fácil leitura (Seguro, Suspeito, Malicioso).
-- **Lista de Motores:** Detalhamento completo de quais serviços de segurança detectaram a ameaça.
-- **Design Responsivo:** Adaptado para dispositivos móveis e desktops.
-- **Efeitos Dinâmicos:** Botões com transições e efeitos de hover para uma melhor experiência de usuário (UX).
+O **Consulta Segura** é uma aplicação Full Stack de segurança cibernética que permite aos usuários verificar a confiabilidade de links em tempo real. Utilizando a robusta infraestrutura da API do **VirusTotal**, o sistema processa URLs através de dezenas de motores de busca (como Avast, Google Safebrowsing e Kaspersky) para detectar ameaças, phishing e malwares.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🌐 Arquitetura do Projeto
 
-Este projeto foi desenvolvido utilizando as melhores práticas de desenvolvimento web moderno:
+Para garantir a segurança das chaves de API e contornar problemas de CORS, o projeto foi dividido em duas partes independentes:
 
-- **HTML5**: Estruturação semântica.
-- **CSS3**: Design moderno utilizando Variáveis CSS, Flexbox e CSS Grid.
-- **JavaScript (ES6+)**: Lógica assíncrona com `async/await` e consumo de API via `fetch`.
-- **Backend (API)**: Backend hospedado no Render para intermediação com a API do VirusTotal.
+1.  **Frontend (Este Repositório):** Interface moderna construída com foco em UX/UI, utilizando HTML5, CSS3 e JavaScript Vanilla.
+2.  **Backend:** Servidor Proxy desenvolvido em Node.js que intermedia as requisições entre o cliente e o VirusTotal. 
+    * 🔗 **Repositório do Back:** [vt-backend-consultaSegura](https://github.com/Gui-2903/vt-backend-consultaSegura/blob/F0r4zT31R0-patch-1/server.js)
+
+Toda a infraestrutura está hospedada e operacional na plataforma **Render**.
+
+---
+
+## ✨ Funcionalidades em Destaque
+
+- **Interface Dark Mode:** Design moderno com foco em legibilidade e estética profissional.
+- **Análise Dinâmica (Polling):** O frontend gerencia o estado da análise, consultando o servidor automaticamente até que o relatório final esteja pronto.
+- **Destaque de Ameaças:** Cartões de estatísticas com ícones e cores semânticas (Verde para seguro, Amarelo para suspeito, Vermelho para malicioso).
+- **Lista Detalhada:** Exibição técnica de cada motor de análise e seu respectivo veredito.
+- **Botões Interativos:** Feedback visual avançado com efeitos de escala e brilho ao passar o mouse.
+
+---
+
+## 🛠️ Tecnologias e Ferramentas
+
+### Frontend
+- **HTML5 & CSS3:** Uso intensivo de CSS Grid e Flexbox para responsividade.
+- **JavaScript (ES6+):** Manipulação de DOM, consumo de APIs assíncronas (`fetch`) e lógica de temporização.
+
+### Backend (Node.js)
+- **Express:** Framework para roteamento de requisições.
+- **Axios:** Cliente HTTP para comunicação com a API externa.
+- **Multer:** Middleware para manipulação de `multipart/form-data`.
+- **CORS:** Gerenciamento de permissões de acesso entre domínios.
 
 ---
 
 ## 🚀 Como Executar o Projeto
 
-Como o projeto é composto por arquivos estáticos front-end, você pode executá-lo de forma simples:
+1.  Clone o repositório:
+    ```bash
+    git clone [https://github.com/Gui-2903/consulta-segura.git](https://github.com/Gui-2903/consulta-segura.git)
+    ```
+2.  Navegue até o diretório:
+    ```bash
+    cd consulta-segura
+    ```
+3.  Execute o `index.html`:
+    * Você pode abrir o arquivo diretamente no navegador ou utilizar a extensão **Live Server** no VS Code para uma melhor experiência.
 
-1. Clone o repositório:
-   ```bash
-   git clone [https://github.com/Gui-2903/consulta-segura.git](https://github.com/Gui-2903/consulta-segura.git)
+> **Importante:** O frontend já está configurado para apontar para o backend hospedado no Render. Caso queira rodar o servidor localmente, altere a constante `BASE_URL` no arquivo `script.js`.
+
+---
+
+## 👨‍💻 Sobre o Desenvolvedor
+
+**Guilherme e Joao pedro**
+Estudante de **Sistemas de Informação** na **UEMG**.
+Atualmente no 6º semestre, com interesse em automação de processos, performance de software e desenvolvimento web moderno. 
+
+---
