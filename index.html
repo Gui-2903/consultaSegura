@@ -2,64 +2,140 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Consulta Segura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consulta Segura - Análise Detalhada</title>
 
   <style>
+    :root {
+      --bg-main: #0f172a;
+      --bg-card: #1e293b;
+      --bg-dark: #020617;
+      --primary: #3b82f6;
+      --text: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
     body {
-      font-family: Arial;
-      background: #0f172a;
-      color: #e2e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg-main);
+      color: var(--text);
       display: flex;
       justify-content: center;
-      padding: 40px;
+      padding: 20px;
+      margin: 0;
     }
 
     .container {
       width: 100%;
-      max-width: 600px;
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 10px;
+      max-width: 700px;
+      background: var(--bg-card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
 
-    input, button {
+    h2 { text-align: center; margin-bottom: 25px; }
+
+    .input-group { margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-size: 0.9em; color: #94a3b8; }
+
+    input[type="text"], input[type="file"] {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-    }
-
-    input {
-      background: #334155;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: var(--bg-dark);
       color: white;
+      box-sizing: border-box;
     }
 
     button {
-      background: #3b82f6;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary);
       color: white;
+      font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s;
     }
 
-    button:hover {
-      background: #2563eb;
-    }
+    button:hover { background: #2563eb; }
 
+    /* Resultados */
     .result {
-      margin-top: 20px;
+      margin-top: 25px;
+      padding: 20px;
+      background: var(--bg-dark);
+      border-radius: 8px;
+      display: none; /* Escondido até ter dados */
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
       padding: 15px;
-      background: #020617;
-      border-radius: 6px;
-    }
-
-    .loading {
-      color: yellow;
+      border-radius: 8px;
       text-align: center;
+      background: var(--bg-card);
     }
 
-    .error {
-      color: red;
+    .stat-box.malicious { border: 1px solid var(--danger); color: var(--danger); }
+    .stat-box.harmless { border: 1px solid var(--success); color: var(--success); }
+    .stat-box.suspicious { border: 1px solid var(--warning); color: var(--warning); }
+
+    .engine-container {
+      margin-top: 20px;
     }
+
+    .engine-list {
+      max-height: 300px;
+      overflow-y: auto;
+      background: #111827;
+      border-radius: 6px;
+      padding: 10px;
+      border: 1px solid #1e293b;
+    }
+
+    .engine-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-bottom: 1px solid #1e293b;
+      font-size: 0.85em;
+    }
+
+    .status-clean { color: var(--success); }
+    .status-detected { color: var(--danger); font-weight: bold; }
+
+    .loading { color: var(--warning); text-align: center; font-weight: bold; }
+    .error { color: var(--danger); text-align: center; }
+    
+    .view-report {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      padding: 12px;
+      background: #334155;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: opacity 0.3s;
+    }
+    .view-report:hover { opacity: 0.8; }
+
+    /* Custom Scrollbar */
+    .engine-list::-webkit-scrollbar { width: 6px; }
+    .engine-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -67,78 +143,108 @@
 <div class="container">
   <h2>🔍 Consulta Segura</h2>
 
-  <!-- URL -->
-  <input type="text" id="urlInput" placeholder="Cole uma URL">
-  <button onclick="scanURL()">Analisar URL</button>
+  <div class="input-group">
+    <label>Analisar endereço web:</label>
+    <input type="text" id="urlInput" placeholder="https://exemplo.com">
+    <button onclick="scanURL()">Analisar URL</button>
+  </div>
 
-  <!-- FILE -->
-  <input type="file" id="fileInput">
-  <button onclick="scanFile()">Analisar Arquivo</button>
+  <div class="input-group">
+    <label>Analisar arquivo local:</label>
+    <input type="file" id="fileInput">
+    <button onclick="scanFile()">Analisar Arquivo</button>
+  </div>
 
-  <!-- RESULT -->
   <div id="result" class="result"></div>
 </div>
 
 <script>
   const BASE_URL = "https://vt-backend-consultasegura.onrender.com";
-
   const resultDiv = document.getElementById("result");
 
   function loading() {
-    resultDiv.innerHTML = "<p class='loading'>⏳ Analisando...</p>";
+    resultDiv.style.display = "block";
+    resultDiv.innerHTML = "<p class='loading'>⏳ Processando análise... Aguarde.</p>";
   }
 
   function showError(msg) {
+    resultDiv.style.display = "block";
     resultDiv.innerHTML = `<p class="error">❌ ${msg}</p>`;
   }
 
   function showResult(data, link) {
-    const stats = data.attributes.last_analysis_stats;
+    const stats = data.attributes.stats;
+    const results = data.attributes.results;
+
+    let engineHtml = "";
+    // Transformamos o objeto em array para ordenar (detectados primeiro)
+    const sortedEngines = Object.keys(results).sort((a, b) => {
+        if (results[a].category === "malicious") return -1;
+        return 1;
+    });
+
+    for (const engineName of sortedEngines) {
+      const res = results[engineName];
+      const isClean = res.category === "harmless" || res.category === "undetected";
+      const statusClass = isClean ? "status-clean" : "status-detected";
+      
+      engineHtml += `
+        <div class="engine-item">
+          <span>${res.engine_name}</span>
+          <span class="${statusClass}">${res.result || 'Clean'}</span>
+        </div>
+      `;
+    }
 
     resultDiv.innerHTML = `
-      <h3>Resultado</h3>
-      <p><strong>Malicioso:</strong> ${stats.malicious}</p>
-      <p><strong>Suspeito:</strong> ${stats.suspicious}</p>
-      <p><strong>Seguro:</strong> ${stats.harmless}</p>
-      <a href="${link}" target="_blank">🔗 Ver relatório completo</a>
+      <h3 style="margin-top:0">Resultado da Varredura</h3>
+      
+      <div class="stats-grid">
+        <div class="stat-box malicious">
+          <strong>Maliciosos</strong><br>${stats.malicious}
+        </div>
+        <div class="stat-box suspicious">
+          <strong>Suspeitos</strong><br>${stats.suspicious}
+        </div>
+        <div class="stat-box harmless">
+          <strong>Seguros</strong><br>${stats.harmless}
+        </div>
+      </div>
+
+      <div class="engine-container">
+        <label>Detalhes dos Motores (${Object.keys(results).length}):</label>
+        <div class="engine-list">
+          ${engineHtml}
+        </div>
+      </div>
+
+      <a href="${link}" target="_blank" class="view-report">
+        🔗 Ver Relatório Completo no VirusTotal
+      </a>
     `;
   }
 
-  // 🔗 URL
   async function scanURL() {
     const url = document.getElementById("urlInput").value;
-
-    if (!url) return alert("Digite uma URL");
-
+    if (!url) return alert("Por favor, insira uma URL");
     loading();
 
     try {
       const response = await fetch(`${BASE_URL}/scan-url`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `url=${encodeURIComponent(url)}`
       });
-
       const data = await response.json();
-
-      console.log(data);
-      const analysisId = data.data.links;
-
-      await getResult(analysisId, "url");
-
+      await getResult(data.data.id, "url");
     } catch (err) {
-      showError("Erro ao analisar URL");
+      showError("Erro ao iniciar análise da URL");
     }
   }
 
-  // 📁 FILE
   async function scanFile() {
     const file = document.getElementById("fileInput").files[0];
-
-    if (!file) return alert("Selecione um arquivo");
-
+    if (!file) return alert("Selecione um arquivo primeiro");
     loading();
 
     const formData = new FormData();
@@ -149,47 +255,44 @@
         method: "POST",
         body: formData
       });
-
       const data = await response.json();
-
-      const analysisId = data.data.id;
-
-      await getResult(analysisId, "file");
-
+      await getResult(data.data.id, "file");
     } catch (err) {
-      showError("Erro ao enviar arquivo");
+      showError("Erro ao enviar arquivo para o servidor");
     }
   }
 
-  // 🔄 BUSCAR RESULTADO (Polling)
-  async function getResult(id, type) {
+  async function getResult(analysisId, type) {
     let tries = 0;
+    const maxTries = 15;
 
-    while (tries < 10) {
+    while (tries < maxTries) {
       try {
-        const res = await fetch(`${BASE_URL}/analysis/${id}`);
+        const res = await fetch(`${BASE_URL}/analysis/${analysisId}`);
         const data = await res.json();
+        
+        console.log("Status atual:", data.data.attributes.status);
 
         if (data.data.attributes.status === "completed") {
-          const link =
-            type === "url"
-              ? `https://www.virustotal.com/gui/url/${id}`
-              : `https://www.virustotal.com/gui/file/${id}`;
+          // Extração profissional do ID limpo para o link
+          const cleanId = analysisId.split('-')[1];
+          const link = type === "url"
+            ? `https://www.virustotal.com/gui/url/${cleanId}`
+            : `https://www.virustotal.com/gui/file/${cleanId}`;
 
           showResult(data.data, link);
           return;
         }
 
-        await new Promise(r => setTimeout(r, 2000));
         tries++;
-
-      } catch {
-        showError("Erro ao buscar resultado");
+        await new Promise(r => setTimeout(r, 3000)); // Espera 3 seg antes de tentar de novo
+      } catch (error) {
+        console.error("Erro no polling:", error);
+        showError("Erro ao recuperar os detalhes da análise.");
         return;
       }
     }
-
-    showError("Tempo excedido, tente novamente");
+    showError("A análise está demorando mais que o esperado. Verifique o link oficial mais tarde.");
   }
 </script>
 
