@@ -1,5 +1,5 @@
 // Configuração
-const BASE_URL = "https://vt-backend-consultasegura-1.onrender.com";
+const BASE_URL = "https://vt-backend-consultasegura.onrender.com";
 const resultArea = document.getElementById("result");
 
 /**
