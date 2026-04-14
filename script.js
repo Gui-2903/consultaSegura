@@ -142,8 +142,8 @@ async function scanURL() {
     }
 
   } catch (err) {
-    console.error("Erro na varredura:", err);
-    showError("Não foi possível iniciar a análise da URL. Tente novamente mais tarde.");
+  console.error("Erro completo:", err.response?.data || err.message);
+  res.status(500).json(err.response?.data || err.message);
   }
 }
 
