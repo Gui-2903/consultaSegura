@@ -57,6 +57,39 @@ Toda a infraestrutura está hospedada e operacional na plataforma **Render**.
 
 ---
 
+## 🧪 Testes Automatizados
+
+O projeto utiliza **Playwright** para testes E2E (End-to-End) que garantem a qualidade do código a cada alteração.
+
+### O que os testes verificam:
+
+1. **Carregamento da página** - Verifica se o título, elementos principais (input, botão) estão presentes e visíveis corretamente.
+
+2. **Validação de campos vazios** - Garante que o sistema exibe erro quando o usuário tenta analisar sem inserir uma URL.
+
+### Como executar localmente:
+
+```bash
+npm install
+npx playwright test
+```
+
+---
+
+## ⚙️ CI/CD - GitHub Actions
+
+O projeto possui automação de testes via **GitHub Actions** que executa os testes automaticamente em:
+
+- Push para branch `main` ou `develop`
+- Pull requests para `main` ou `develop`
+
+O workflow está localizado em `.github/workflows/test.yml` e executa:
+1. Instala as dependências
+2. Instala os navegadores do Playwright
+3. Executa todos os testes
+
+---
+
 ## 👨‍💻 Sobre o Desenvolvedor
 
 **Guilherme e Joao pedro**
